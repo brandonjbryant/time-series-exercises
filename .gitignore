@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#TSA 
+combined_df.csv
+complete_data.csv
+items.csv
+opsd_germany_daily.csv
+sa_temps.csv
+sales.csv
+stores.csv
