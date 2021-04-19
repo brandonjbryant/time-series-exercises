@@ -208,72 +208,30 @@ def prep_germany(cached=False):
 
 
 #----------------------------------------------------------------------------------------#
-###### Identifying Zeros and Nulls in columns and rows
-
-
-def missing_zero_values_table(df):
-    '''
-    This function tales in a dataframe and counts number of Zero values and NULL values. Returns a Table with counts and percentages of each value type.
-    '''
-    zero_val = (df == 0.00).astype(int).sum(axis=0)
-    mis_val = df.isnull().sum()
-    mis_val_percent = 100 * df.isnull().sum() / len(df)
-    mz_table = pd.concat([zero_val, mis_val, mis_val_percent], axis=1)
-    mz_table = mz_table.rename(
-    columns = {0 : 'Zero Values', 1 : 'NULL Values', 2 : '% of Total NULL Values'})
-    mz_table['Total Zero\'s plus NULL Values'] = mz_table['Zero Values'] + mz_table['NULL Values']
-    mz_table['% Total Zero\'s plus NULL Values'] = 100 * mz_table['Total Zero\'s plus NULL Values'] / len(df)
-    mz_table['Data Type'] = df.dtypes
-    mz_table = mz_table[
-        mz_table.iloc[:,1] >= 0].sort_values(
-    '% of Total NULL Values', ascending=False).round(1)
-    print ("Your selected dataframe has " + str(df.shape[1]) + " columns and " + str(df.shape[0]) + " Rows.\n"      
-        "There are " + str((mz_table['NULL Values'] != 0).sum()) +
-          " columns that have NULL values.")
-    #       mz_table.to_excel('D:/sampledata/missing_and_zero_values.xlsx', freeze_panes=(1,0), index = False)
-    return mz_table
+###### Easley
 
 
 
-def missing_columns(df):
-    '''
-    This function takes a dataframe, counts the number of null values in each row, and converts the information into another dataframe. Adds percent of total columns.
-    '''
-    missing_cols_df = pd.Series(data=df.isnull().sum(axis = 1).value_counts().sort_index(ascending=False))
-    missing_cols_df = pd.DataFrame(missing_cols_df)
-    missing_cols_df = missing_cols_df.reset_index()
-    missing_cols_df.columns = ['total_missing_cols','num_rows']
-    missing_cols_df['percent_cols_missing'] = round(100 * missing_cols_df.total_missing_cols / df.shape[1], 2)
-    missing_cols_df['percent_rows_affected'] = round(100 * missing_cols_df.num_rows / df.shape[0], 2)
-    
-    return missing_cols_df
 
+def prep_store_data(df):
+    df.sale_date = pd.to_datetime(df.sale_date, format='%a, %d %b %Y %H:%M:%S %Z')
+    # make sure we sort by date/time before resampling or doing other time series manipulations
+    df = df.set_index('sale_date').sort_index()
+    df = df.rename(columns={'sale_amount': 'quantity'})
+    df['month'] = df.index.month
+    df['year'] = df.index.year
+    df['sales_total'] = df.quantity * df.item_price
+    return df
 
-#----------------------------------------------------------------------------------------#
-######################################################################################
+def prep_opsd_data(df):
+    df.columns = [column.lower() for column in df]
+    df = df.rename(columns={'wind+solar': 'wind_and_solar'})
 
-def split_data(df):
-    '''
-    Takes a df and splits by the index, 70% for train and 30% for test
-    '''
-    # determining index for splitting the data
-    train_size = .70
-    n = df.shape[0]
-    test_start_index = round(train_size * n)
+    df.date = pd.to_datetime(df.date)
+    df = df.set_index('date').sort_index()
 
-    train = df[:test_start_index] # everything up (not including) to the test_start_index
-    test = df[test_start_index:] # everything from the test_start_index to the end
+    df['month'] = df.index.month
+    df['year'] = df.index.year
 
-    return train, test
-
-def handle_missing_values(df, prop_to_drop_col, prop_to_drop_row):
-    '''
-    This function takes in a dataframe, 
-    a number between 0 and 1 that represents the proportion, for each column, of rows with non-missing values required to keep the column, 
-    a another number between 0 and 1 that represents the proportion, for each row, of columns/variables with non-missing values required to keep the row, and returns the dataframe with the columns and rows dropped as indicated.
-    '''
-    # drop cols > thresh, axis = 1 == cols
-    df = df.dropna(axis=1, thresh = prop_to_drop_col * df.shape[0])
-    # drop rows > thresh, axis = 0 == rows
-    df = df.dropna(axis=0, thresh = prop_to_drop_row * df.shape[1])
+    df = df.fillna(0)
     return df
