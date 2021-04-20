@@ -136,3 +136,10 @@ opsd_germany_daily.csv
 sa_temps.csv
 sales.csv
 stores.csv
+store_item_demand.csv
+saas.csv
+GlobalLandTemperaturesByCountry.csv
+GlobalLandTemperaturesByMajorCity.csv
+GlobalLandTemperaturesByState.csv
+modeling_lesson.ipynb
+modeling-3.ipynb
