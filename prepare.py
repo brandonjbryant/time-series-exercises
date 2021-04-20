@@ -1,4 +1,5 @@
 import pandas as pd
+import acquire as a
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -227,11 +228,23 @@ def prep_opsd_data(df):
     df.columns = [column.lower() for column in df]
     df = df.rename(columns={'wind+solar': 'wind_and_solar'})
 
-    df.date = pd.to_datetime(df.date)
-    df = df.set_index('date').sort_index()
+    df.Date = pd.to_datetime(df.Date)
+    df = df.set_index('Date').sort_index()
 
     df['month'] = df.index.month
     df['year'] = df.index.year
 
     df = df.fillna(0)
     return df
+
+def get_germany():
+    
+    germany = pd.read_csv('opsd_germany_daily.csv')
+    germany.Date = pd.to_datetime(germany.Date)
+    
+    germany = germany.set_index('Date').sort_index()
+    germany['month'] = germany.index.month_name()     
+    germany['year'] = germany.index.year
+    germany_filled = germany.fillna(germany.mean())
+    
+    return germany_filled
